@@ -1,18 +1,21 @@
-memfs (pronounced mem-fis) is a in-memory file server. It provides major speed benefits over http.FileServer() for servers that have memory to spare. Package benchmarks suggest 8x or higher performance over http.FileServer().
+memfs (pronounced mem-fis) is a in-memory file server. It provides major speed benefits over http.FileServer() for servers that have memory to spare. Package benchmarks suggest 8-25x speed increases over the std lib http.FileServer().
 
 # How do you know if memfs is right for your server?
 * Your server desires high throughput and has memory to spare in excess of the target directory's size.
-* If you're not sure whether you have memory to spare, run a test with log.Println("Dir Size: ", memfs.DirSize("./YOUR_DIR")) and consider whether your servers can spare that much memory at runtime. Alternatively, you can scale up instance size if it's an issue.
+* If you're not sure whether you have memory to spare, run a test with TODO log.Println("Dir Size: ", memfs.DirSize("./YOUR_DIR")) and consider whether your servers can spare that much memory at runtime. Alternatively, you can scale up instance size if it's an issue.
 * You just want to serve files faster.
     
 # How does memfs work
 * memfs supplies a FileServer that points to a directory.
 * It reads the contents into memory, skipping any that do not form a valid HTTP URL.
     * File creations, updates, or deletions after the FileServer has been created have no effect. This is usually not an issue because this package's primary use case is to quickly serve static front end builds, such as a React App.
-* Files are matched by exact paths. Additionally, "/" matches "index.*", such as index.html or index.production.html.
-    * For more dynamic pattern matching, you'll need to implement middleware appropriate to your use case.
+* Files are matched by exact paths. Additionally, "/" matches "index.*", such as index.html or index.production.html in the directory or any subdirectory ("/" finds "/index.html", while "/nested/" finds "/nested/index.html").
+    * For variable pattern matching, you'll need to implement middleware appropriate to your use case.
     * Files outside of the target directory cannot be matched.
 * Files are served by providing the http.ResponseWriter with the pre-loaded []byte read from the target directory when the FileServer was first created.
+
+# Example of a good use case
+* Your server has 8gb memory. At peak times, the server is running at 100% CPU and has 50% memory utilization. Part of its job is to serve a React App that has a total build size (including all assets, such as images) of 1gb. memfs can use 1gb of the 4gb available to speed up file serving.
 
 # Example
 Structure:
