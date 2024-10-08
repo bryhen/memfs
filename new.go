@@ -7,11 +7,17 @@ import (
 
 var notFound = []byte(http.StatusText(http.StatusNotFound))
 
-// Creates a new FileServer that has loaded the directory.
-func New(dir string) (*FileServer, []invalidPath, error) {
+func trimDir(dir string) string {
 	if strings.HasPrefix(dir, "."+forwardSlash) {
 		dir = dir[2:]
 	}
+
+	return dir
+}
+
+// Creates a new FileServer that has loaded the directory.
+func New(dir string) (*FileServer, []invalidPath, error) {
+	dir = trimDir(dir)
 
 	paths, files, invalid, err := readDir(dir)
 	if err != nil {
