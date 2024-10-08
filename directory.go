@@ -11,10 +11,9 @@ type invalidPath string
 
 const (
 	forwardSlash string = "/"
-	testURL      string = "http://x.com/"
-)
+	testURL      string = "http://x.com"
+	defaultName  string = "index"
 
-const (
 	kb float64 = 1024
 	mb float64 = kb * kb
 	gb float64 = mb * kb
@@ -54,8 +53,8 @@ func readDir(dir string) ([]string, [][]byte, []invalidPath, error) {
 	invalid := []invalidPath{}
 
 	for _, f := range files {
-		p := dir + forwardSlash + f.Name()
-		pURL := dir + forwardSlash + f.Name()
+		rootP := dir + forwardSlash
+		p := rootP + f.Name()
 
 		if f.IsDir() {
 
@@ -69,7 +68,7 @@ func readDir(dir string) ([]string, [][]byte, []invalidPath, error) {
 
 		} else {
 
-			_, err := url.ParseRequestURI(testURL + pURL)
+			url, err := url.ParseRequestURI(testURL + p)
 			if err != nil {
 				invalid = append(invalid, invalidPath(p))
 				continue
@@ -79,15 +78,14 @@ func readDir(dir string) ([]string, [][]byte, []invalidPath, error) {
 			if err != nil {
 				return nil, nil, nil, err
 			} else {
-				paths = append(paths, pURL)
+				paths = append(paths, url.Path)
 				fileBs = append(fileBs, fBs)
 			}
 
-			if strings.HasPrefix(f.Name(), "index.") {
-				paths = append(paths, pURL)
+			if strings.HasPrefix(f.Name(), defaultName) {
+				paths = append(paths, rootP)
 				fileBs = append(fileBs, fBs)
 			}
-
 		}
 	}
 
